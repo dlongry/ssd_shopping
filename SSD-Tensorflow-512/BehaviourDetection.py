@@ -4,83 +4,54 @@ import cv2
 import base64
 import time
 import json
+import KCF
+import utils
+
 
 class BehaviourDetection:
-    def __init__(self, context, load_queue_length=5):
+    def __init__(self, context, load_queue_length=1, img_w=512, img_h=512):
         self.load_queue_length = load_queue_length
         self.context = context
+        self.img_w = img_w
+        self.img_h = img_h
         self.is_detected = False
-        self._tclass = None
-        self._det_obj_flag = 0
-        self._divide_flag = 0
-        self._ori_place = 0
-        self._ignore_count = 0
-        pass
+        self._tclass = self.context.edge_detector.now_tclasses[0]
+        self.tracker = KCF.kcftracker(True, True, True,
+                                      False)  # hog, fixed_window, multiscale, lab(True, True, False,lab)
+        self.ix = int(self.context.edge_detector.now_tbboxesr[0][1] * img_w)
+        self.iy = int(self.context.edge_detector.now_tbboxesr[0][0] * img_h)  # init (x0,y0)
+        self.w = int(self.context.edge_detector.now_tbboxesr[0][3] * img_w) - int(
+            self.context.edge_detector.now_tbboxesr[0][1] * img_w)
+        self.h = int(self.context.edge_detector.now_tbboxesr[0][2] * img_h) - int(
+            self.context.edge_detector.now_tbboxesr[0][0] * img_h)
+        self._ori_place = self.context.edge_detector.ori_places[0]
 
-    def rItem_detector(self, img, t_class):
-        prop_border = self.context.edge_detector.prop_border
-        rclasses, rscores, rbboxes = detect_img(img)
-        for i in range(rclasses.shape[0]):
-            if rclasses[i] == t_class:
-                self._det_obj_flag = 1
-                if rbboxes[i, 0] > prop_border:  # bboxes[i,0] is ymin > means out of border
-                    self._divide_flag = 1
+        self.tracker.init([self.ix, self.iy, self.w, self.h], self.context.edge_detector.last_frame)
         pass
 
     def conduct(self):
-        print("into behaviour state,tclass:", self.context.edge_detector.now_tclasses[0], "ori_place:", self.context.edge_detector.ori_places[0])
-        self._ori_place = self.context.edge_detector.ori_places[0]
-        self._tclass = self.context.edge_detector.now_tclasses[0]
+        print("into behaviour state,tclass:", self._tclass, "ori_place:", self._ori_place)
+        print(self.ix, self.iy, self.w, self.h)
 
-
-        #
-        # if self._ori_place == 1:
-        #     print(self._tclass, "substract one")
-        #     self.context.redis_connection_result_queue.set(int(time.time() * 100000), json.dumps({'operator': '-', 'item_id': '1'}))
-        # else:
-        #     print(self._tclass,"add one")
-        # time.sleep(0.5)
-        # self.is_detected = True
-        '''
+        # -- get camera img --
         k = self.context.redis_connection_img_queue.keys()
         k.sort()
         if len(k) is 0:
-            print("EdgeDetection: Queue is empty")
+            print("behaviour: Queue is empty")
+            time.sleep(0.1)
             return
 
         for img_b64 in self.context.redis_connection_img_queue.mget(k[-self.load_queue_length:]):
             img_jpg = base64.b64decode(img_b64)
             data = np.asarray(bytearray(img_jpg), dtype=np.uint8)
             data = cv2.imdecode(data, 1)
-            self.rItem_detector(data, self._tclass)
 
-        if self._det_obj_flag == 0:
-            # self._ignore_count = self._ignore_count + 1
-            # if self._ignore_count > 5:
-            if self._ori_place == 0:  # may be ignoring object
-                print("do nothing")
-                self.is_detected = True
-            else:
-                print(self._tclass, "substract one")
-                self.context.redis_connection_result_queue.set(int(time.time() * 100000), json.dumps({'operator': '-', 'item_id': '1'}))
-                # set to redis
-                self.is_detected = True
+            boundingbox = self.tracker.update(data)
+            boundingbox = map(int, boundingbox)
+            utils.plt_tracker(data, self._tclass, boundingbox)
+            self.ix = boundingbox[0]
+            self.iy = boundingbox[1]
+            self.w = boundingbox[2]
+            self.h = boundingbox[3]
 
-        else:
-            if self._divide_flag != 0:
-                if self._ori_place == 0:
-                    print(self._tclass, "add one")
-                    self.context.redis_connection_result_queue.set(int(time.time() * 100000), json.dumps({'operator': '+', 'item_id': '1'}))
-                    # set to redis
-                    self.is_detected = True
-                else:
-                    #can't happend
-                    self._divide_flag=0
-                    self._det_obj_flag=0
-                    print("down do nothing")
-
-            else:
-                print("no leave")
-
-            '''
         pass

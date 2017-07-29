@@ -17,6 +17,7 @@ class EdgeDetection:
         self.now_tscores = None
         self.now_tbboxesr = None
         self.ori_places = None
+        self.last_frame = None
         pass
 
     def get_ori_place(self,tclass,tbbox):
@@ -97,4 +98,5 @@ class EdgeDetection:
             ori_places, now_tclasses, now_tscores, now_tbboxes = self.edge_detector(data)
             if len(now_tclasses) is not 0:
                 self.ori_places, self.now_tclasses, self.now_tscores, self.now_tbboxesr = ori_places, now_tclasses, now_tscores, now_tbboxes
+                self.last_frame = data.copy()
                 self.is_detected = True
