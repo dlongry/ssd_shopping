@@ -8,7 +8,7 @@ import utils
 
 
 class EdgeDetection:
-    def __init__(self, context,load_queue_length=1, prop_border=0.07):
+    def __init__(self, context,load_queue_length=1, prop_border=0.1):
         self.load_queue_length = load_queue_length
         self.prop_border = prop_border
         self.context = context
@@ -52,7 +52,7 @@ class EdgeDetection:
             xmax = float(rbboxes[i, 3] * width)
 
             # if  20<ymin < border_ymax and (rclasses[i] == 1 or rclasses[i] == 2): # only for oreo and TesDi
-            if  20<ymin < border_ymax : # only for oreo and TesDi
+            if  ymin < border_ymax : # only for oreo and TesDi
                 tclasses.append(rclasses[i])
                 tscores.append(rscores[i])
                 tbboxes.append(rbboxes[i])

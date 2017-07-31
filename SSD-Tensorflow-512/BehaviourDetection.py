@@ -67,6 +67,7 @@ class BehaviourDetection:
             xmax = float(rbboxes[i, 3] * width)
 
             if ymin < border_ymax and (rclasses[i] == tclass):
+                # if rclasses[i] == tclass:
                 tclasses.append(rclasses[i])
                 tscores.append(rscores[i])
                 tbboxes.append(rbboxes[i])
@@ -90,55 +91,42 @@ class BehaviourDetection:
             img_jpg = base64.b64decode(img_b64)
             data = np.asarray(bytearray(img_jpg), dtype=np.uint8)
             data = cv2.imdecode(data, 1)
-
+            data = cv2.cvtColor(data, cv2.COLOR_BGR2RGB)
             now_tclasses, now_tscores, now_tbboxes = self.tclass_edge_detector(data, self._tclass)
-            boundingbox = self.tracker.update(data)
-            boundingbox = map(int, boundingbox)
-            utils.plt_tracker(data, self._tclass, boundingbox)
 
-            self.ix = boundingbox[0]
-            self.iy = boundingbox[1]
-            self.w = boundingbox[2]
-            self.h = boundingbox[3]
+            utils.plt_behaviour_cv(data, now_tclasses, now_tscores, now_tbboxes)
+            # print("now_tbboxes",now_tbboxes)
+            if len(now_tclasses) is not 0:
+                self.iy = int(now_tbboxes[0][0] * self.img_w)
+                self.ix = int(now_tbboxes[0][1] * self.img_h)
+                self.w = int(now_tbboxes[0][2] * self.img_w)
+                self.h = int(now_tbboxes[0][3] * self.img_h)
 
-            self.now_patch = data[self.iy:self.iy + self.h,
-                             self.ix:self.ix + self.w]
+                # print("x,y,w,h", self.ix, self.iy, self.w, self.h)
 
-            if self.iy > 5:
-                hist_state = utils.hist_verify(self.ori_patch, self.now_patch, 5)
-                if hist_state == False:
-                    if self.iy<12:
-                        print(self._tclass, "miss sub one")
-                        self.context.redis_connection_result_queue.set(int(time.time() * 100000), json.dumps(
-                            {'operator': '-', 'item_id': str(self._tclass)}))
-                    self.is_detected = 1
+                self.move_dis = self.iy - self.ori_iy
+                print("move_dis", self.move_dis, "self.ori_iy", self.ori_iy, "self.border", self.dis_threshold)
+
+            # utils.hist_verify(self.ori_patch,data[self.iy:self.iy+self.h,self.ix:self.ix+self.w], 0)
 
 
+        if self.iy + self.h > self.dis_threshold and self.ori_iy < self.dis_threshold / 2:
+            if self.move_dis > self.dis_threshold / 3:
+                print(self._tclass, "add one")
 
-
-
-
-        self.move_dis = self.iy - self.ori_iy
-
-        if self.iy + self.h > self.dis_threshold and self.ori_iy < self.dis_threshold:
-            if self.move_dis > self.dis_threshold:
-                if len(now_tclasses) is 0:  # ensure can't repeat count(excepted miss detect)
-                    print(self._tclass, "add one")
-
-                    self.context.redis_connection_result_queue.set(int(time.time() * 100000), json.dumps(
-                        {'operator': '+', 'item_id': str(self._tclass)}))
-                    time.sleep(0.5)
-                    self.is_detected = 1
+                self.context.redis_connection_result_queue.set(int(time.time() * 100000), json.dumps(
+                    {'operator': '+', 'item_id': str(self._tclass)}))
+                time.sleep(0.5)
+                self.is_detected = 1
             else:
                 pass
 
-        if self.iy < 20:  # *self.dis_threshold:
-            if self.move_dis < (-self.dis_threshold):
-                print(self._tclass, "sub one")
-                self.context.redis_connection_result_queue.set(int(time.time() * 100000), json.dumps(
-                    {'operator': '-', 'item_id': str(self._tclass)}))
-                time.sleep(1)
-                self.is_detected = 1
-
+        if self.iy < self.dis_threshold / 2 and self.move_dis < (-self.dis_threshold) / 4:
+            # *self.dis_threshold:
+            print(self._tclass, "sub one")
+            self.context.redis_connection_result_queue.set(int(time.time() * 100000), json.dumps(
+                {'operator': '-', 'item_id': str(self._tclass)}))
+            time.sleep(1)
+            self.is_detected = 1
 
         pass
