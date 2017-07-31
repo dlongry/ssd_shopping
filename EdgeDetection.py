@@ -75,5 +75,6 @@ class EdgeDetection:
             now_tclasses, now_tscores, now_tbboxes = self.edge_detector(data)
             if len(now_tclasses) is not 0:
                 self.now_tclasses, self.now_tscores, self.now_tbboxesr =  now_tclasses, now_tscores, now_tbboxes
-                self.last_frame = data.copy()
-                self.is_detected = True
+                if  self.now_tscores > 0.9:
+                    self.last_frame = data.copy()
+                    self.is_detected = True

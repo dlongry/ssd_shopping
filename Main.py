@@ -31,6 +31,7 @@ class Main:
                 self.current_state = State.EdgeDetection
         elif self.current_state == State.EdgeDetection:
             # TODO: how to detect edge
+            # if False:
             if self.edge_detector.is_detected:  # xTODO: edge detection success:
                 self.behaviour_detector = BehaviourDetection(self)
                 self.current_state = State.BehaviourDetection

@@ -1,5 +1,6 @@
 import cv2
 import random
+import numpy as np
 
 
 def plt_bboxes_cv(img, classes, scores, bboxes, linewidth=3, type=False):
@@ -53,6 +54,25 @@ def plt_tracker(img, classes, bboxes, linewidth=3):
     h = int(bboxes[3])
     w = int(bboxes[2])
 
-    cv2.rectangle(img, (xmin, ymin), (xmin+w, ymin+h), color, linewidth)
+    cv2.rectangle(img, (xmin, ymin), (xmin + w, ymin + h), color, linewidth)
     cv2.imshow('Object detecting...', img)
     cv2.waitKey(1)
+
+
+
+def hist_verify(ori_patch, now_patch, threshhold):
+    ori_hist = cv2.calcHist([ori_patch], [0, 1, 2], None, [32, 32, 32], [0, 256, 0, 256, 0, 256])
+    ori_hist = ori_hist.flatten()
+    ori_hist = ori_hist / sum(ori_hist)
+
+    now_hist = cv2.calcHist([now_patch], [0, 1, 2], None, [32, 32, 32], [0, 256, 0, 256, 0, 256])
+    now_hist = now_hist.flatten()
+    now_hist = now_hist / sum(now_hist)
+
+    d = cv2.compareHist(ori_hist, now_hist, 1)
+    print("utils: distance between is", d)
+    if d < threshhold:
+        return True
+    else:
+        return False
+
