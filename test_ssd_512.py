@@ -52,7 +52,7 @@ with slim.arg_scope(ssd_net.arg_scope(data_format=data_format)):
 
 # Restore SSD model.
 # ckpt_filename = '../checkpoints/ssd_300_vgg.ckpt'
-ckpt_filename = './SSD-Tensorflow-512/checkpoints/model.ckpt-139056'
+ckpt_filename = './SSD-Tensorflow-512/checkpoints/VGG_PASCAL-mydata_SSD_512x512_iter_4362.ckpt'
 isess.run(tf.global_variables_initializer())
 saver = tf.train.Saver()
 saver.restore(isess, ckpt_filename)
@@ -72,7 +72,7 @@ ssd_anchors = ssd_net.anchors(net_shape)
 
 
 # Main image processing routine.
-def detect_img(img, select_threshold=0.75, nms_threshold=.05, net_shape=(512, 512)):
+def detect_img(img, select_threshold=0.5, nms_threshold=.05, net_shape=(512, 512)):
     # Run SSD network.
     rimg, rpredictions, rlocalisations, rbbox_img = isess.run([image_4d, predictions, localisations, bbox_img],
                                                               feed_dict={img_input: img})
@@ -80,7 +80,7 @@ def detect_img(img, select_threshold=0.75, nms_threshold=.05, net_shape=(512, 51
     # Get classes and bboxes from the net outputs.
     rclasses, rscores, rbboxes = np_methods.ssd_bboxes_select(
         rpredictions, rlocalisations, ssd_anchors,
-        select_threshold=select_threshold, img_shape=net_shape, num_classes=11, decode=True)
+        select_threshold=select_threshold, img_shape=net_shape, num_classes=7, decode=True)
 
     rbboxes = np_methods.bboxes_clip(rbbox_img, rbboxes)
     rclasses, rscores, rbboxes = np_methods.bboxes_sort(rclasses, rscores, rbboxes, top_k=400)
@@ -92,7 +92,7 @@ def detect_img(img, select_threshold=0.75, nms_threshold=.05, net_shape=(512, 51
 def process_demo():
 
     # Test on some demo image and visualize output.
-    path = './SSD-Tensorflow-512/demo2/'
+    path = './SSD-Tensorflow-512/demo_test/'
     image_names = sorted(os.listdir(path))
 
     for name in image_names:

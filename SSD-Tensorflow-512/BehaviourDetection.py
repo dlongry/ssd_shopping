@@ -26,7 +26,7 @@ class BehaviourDetection:
         self.h = int(self.context.edge_detector.now_tbboxesr[0][2] * img_h) - int(
             self.context.edge_detector.now_tbboxesr[0][0] * img_h)
 
-        self.scale_track = 0.1
+        self.scale_track = 0
         self.tracker.init([int(self.ix + self.scale_track * self.w), int(self.iy + self.scale_track * self.h),
                            int(self.w * (1 - self.scale_track)), int(self.h * (1 - self.scale_track))],
                           self.context.edge_detector.last_frame)
@@ -103,42 +103,42 @@ class BehaviourDetection:
 
             self.now_patch = data[self.iy:self.iy + self.h,
                              self.ix:self.ix + self.w]
-            # hist_state = utils.hist_verify(self.ori_patch, self.now_patch, 5)
-            # if hist_state == False:
-            #     self.is_detected = 1
+
+            if self.iy > 5:
+                hist_state = utils.hist_verify(self.ori_patch, self.now_patch, 5)
+                if hist_state == False:
+                    if self.iy<12:
+                        print(self._tclass, "miss sub one")
+                        self.context.redis_connection_result_queue.set(int(time.time() * 100000), json.dumps(
+                            {'operator': '-', 'item_id': str(self._tclass)}))
+                    self.is_detected = 1
+
 
 
 
 
 
         self.move_dis = self.iy - self.ori_iy
-        # print ("dis_threshold", self.dis_threshold, "move dis is ", self.move_dis, "iy", self.iy, "ori_iy", self.ori_iy)
 
-        if self.iy + self.h > self.dis_threshold and self.ori_iy < self.dis_threshold / 3:
+        if self.iy + self.h > self.dis_threshold and self.ori_iy < self.dis_threshold:
             if self.move_dis > self.dis_threshold:
                 if len(now_tclasses) is 0:  # ensure can't repeat count(excepted miss detect)
                     print(self._tclass, "add one")
-                    time.sleep(0.5)
+
                     self.context.redis_connection_result_queue.set(int(time.time() * 100000), json.dumps(
                         {'operator': '+', 'item_id': str(self._tclass)}))
+                    time.sleep(0.5)
                     self.is_detected = 1
             else:
                 pass
 
-        if self.iy < 5:  # *self.dis_threshold:
-            if self.move_dis < (-self.dis_threshold - self.h / 2):
+        if self.iy < 20:  # *self.dis_threshold:
+            if self.move_dis < (-self.dis_threshold):
                 print(self._tclass, "sub one")
                 self.context.redis_connection_result_queue.set(int(time.time() * 100000), json.dumps(
                     {'operator': '-', 'item_id': str(self._tclass)}))
                 time.sleep(1)
                 self.is_detected = 1
-                # elif self.move_dis < -5:
-                #     if len(now_tclasses) is not 0:
-                #          # print("have goods")
-                #          pass
-                #     else:
-                #          self.is_detected = 1
-                #          print("reset")
-                #     pass
+
 
         pass

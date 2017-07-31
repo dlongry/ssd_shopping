@@ -51,7 +51,8 @@ class EdgeDetection:
             ymax = float(rbboxes[i, 2] * height)
             xmax = float(rbboxes[i, 3] * width)
 
-            if ymin < border_ymax and (rclasses[i] == 1 or rclasses[i] == 2): # only for oreo and TesDi
+            # if  20<ymin < border_ymax and (rclasses[i] == 1 or rclasses[i] == 2): # only for oreo and TesDi
+            if  20<ymin < border_ymax : # only for oreo and TesDi
                 tclasses.append(rclasses[i])
                 tscores.append(rscores[i])
                 tbboxes.append(rbboxes[i])
@@ -72,6 +73,7 @@ class EdgeDetection:
             # data = np.asarray(bytearray(img_jpg), dtype=np.uint8).reshape(512,512,3)[:,:,::-1]
             data = np.asarray(bytearray(img_jpg), dtype=np.uint8)
             data = cv2.imdecode(data, 1)
+            data = cv2.cvtColor(data,cv2.COLOR_BGR2RGB)
             now_tclasses, now_tscores, now_tbboxes = self.edge_detector(data)
             if len(now_tclasses) is not 0:
                 self.now_tclasses, self.now_tscores, self.now_tbboxesr =  now_tclasses, now_tscores, now_tbboxes

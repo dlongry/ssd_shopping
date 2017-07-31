@@ -77,8 +77,8 @@ class SSDNet(object):
         img_shape=(512, 512),
 
         # TODO
-        num_classes=11,
-        no_annotation_label=11,
+        num_classes=7,
+        no_annotation_label=7,
         feat_layers=['block4', 'block7', 'block8', 'block9', 'block10', 'block11', 'block12'],
         feat_shapes=[(64, 64), (32, 32), (16, 16), (8, 8), (4, 4), (2, 2), (1, 1)],
         anchor_size_bounds=[0.10, 0.90],

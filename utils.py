@@ -6,6 +6,7 @@ import numpy as np
 def plt_bboxes_cv(img, classes, scores, bboxes, linewidth=3, type=False):
     """Visualize bounding boxes. Largely inspired by SSD-MXNET!
     """
+    img = cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
     height = img.shape[0]
     width = img.shape[1]
     colors = dict()
@@ -38,6 +39,7 @@ def plt_bboxes_cv(img, classes, scores, bboxes, linewidth=3, type=False):
             cv2.putText(img, '{:s} | {:.3f}'.format(class_name, score), (xmin, ymin + 15), font, 0.8, (0, 255, 0), 1,
                         False)
     cv2.imshow('Object detecting...', img)
+    # cv2.imwrite('test.jpg', img)
     cv2.waitKey(1)
 
 
