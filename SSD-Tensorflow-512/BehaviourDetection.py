@@ -101,6 +101,7 @@ class BehaviourDetection:
             if self.move_dis > self.dis_threshold:
                 if len(now_tclasses) is 0: # ensure can't repeat count(excepted miss detect)
                     print(self._tclass, "add one")
+                    self.context.redis_connection_result_queue.set(int(time.time() * 100000), json.dumps({'operator': '+', 'item_id': str(self._tclass)}))
                     self.is_detected = 1
             else:
                 pass
@@ -108,6 +109,7 @@ class BehaviourDetection:
         if self.iy < 0: #*self.dis_threshold:
             if self.move_dis < (-self.dis_threshold-self.h/2):
                 print(self._tclass, "sub one")
+                self.context.redis_connection_result_queue.set(int(time.time() * 100000), json.dumps({'operator': '-', 'item_id': str(self._tclass)}))
                 self.is_detected = 1
             # elif self.move_dis < -5:
             #     if len(now_tclasses) is not 0:
