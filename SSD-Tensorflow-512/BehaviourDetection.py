@@ -17,6 +17,7 @@ class BehaviourDetection:
         self.img_h = img_h
         self.is_detected = 0
         self._tclass = self.context.edge_detector.now_tclasses[0]
+        # self._tclass = self.context.edge_detector.now_tclasses
         self.tracker = KCF.kcftracker(True, True, False,
                                       False)  # hog, fixed_window, multiscale, lab(True, True, False,lab)
         self.ix = int(self.context.edge_detector.now_tbboxesr[0][1] * img_w)
@@ -43,6 +44,7 @@ class BehaviourDetection:
         self.ori_patch = self.context.edge_detector.last_frame[self.ori_iy:self.ori_iy + self.ori_h,
                          self.ori_ix:self.ori_ix + self.ori_w]
         print("into behaviour state,tclass:", self._tclass)
+        self.count_miss = 0
 
         pass
 
@@ -97,6 +99,7 @@ class BehaviourDetection:
             utils.plt_behaviour_cv(data, now_tclasses, now_tscores, now_tbboxes)
             # print("now_tbboxes",now_tbboxes)
             if len(now_tclasses) is not 0:
+                self.count_miss = 0
                 self.iy = int(now_tbboxes[0][0] * self.img_w)
                 self.ix = int(now_tbboxes[0][1] * self.img_h)
                 self.w = int(now_tbboxes[0][2] * self.img_w)
@@ -106,6 +109,19 @@ class BehaviourDetection:
 
                 self.move_dis = self.iy - self.ori_iy
                 print("move_dis", self.move_dis, "self.ori_iy", self.ori_iy, "self.border", self.dis_threshold)
+            else:
+                print("miss",self.count_miss)
+                self.count_miss = self.count_miss +1
+                if self.count_miss > 5:
+                    if self.move_dis > 0:
+                        print("add one ")
+                        self.context.redis_connection_result_queue.set(int(time.time() * 100000), json.dumps(
+                            {'operator': '+', 'item_id': str(self._tclass)}))
+                    elif self.move_dis<0:
+                        print("sub one")
+                        self.context.redis_connection_result_queue.set(int(time.time() * 100000), json.dumps(
+                            {'operator': '-', 'item_id': str(self._tclass)}))
+                    self.is_detected = 1
 
             # utils.hist_verify(self.ori_patch,data[self.iy:self.iy+self.h,self.ix:self.ix+self.w], 0)
 

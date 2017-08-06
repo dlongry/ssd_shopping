@@ -52,7 +52,7 @@ with slim.arg_scope(ssd_net.arg_scope(data_format=data_format)):
 
 # Restore SSD model.
 # ckpt_filename = '../checkpoints/ssd_300_vgg.ckpt'
-ckpt_filename = './SSD-Tensorflow-512/checkpoints/VGG_PASCAL-mydata_SSD_512x512_iter_4362.ckpt'
+ckpt_filename = './SSD-Tensorflow-512/checkpoints/VGG_PASCAL-mydata_SSD_512x512_iter_56000.ckpt'
 isess.run(tf.global_variables_initializer())
 saver = tf.train.Saver()
 saver.restore(isess, ckpt_filename)
