@@ -9,6 +9,8 @@ import utils
 from test_ssd_512 import detect_img
 
 
+
+
 class BehaviourDetection:
     def __init__(self, context, load_queue_length=1, img_w=512, img_h=512):
         self.load_queue_length = load_queue_length
@@ -43,8 +45,9 @@ class BehaviourDetection:
             self.context.edge_detector.now_tbboxesr[0][0] * img_h)
         self.ori_patch = self.context.edge_detector.last_frame[self.ori_iy:self.ori_iy + self.ori_h,
                          self.ori_ix:self.ori_ix + self.ori_w]
-        print("into behaviour state,tclass:", self._tclass)
+        #print("into behaviour state,tclass:", self._tclass)
         self.count_miss = 0
+
 
         pass
 
@@ -137,7 +140,7 @@ class BehaviourDetection:
             else:
                 pass
 
-        if self.iy < self.dis_threshold / 2 and self.move_dis < (-self.dis_threshold) / 4:
+        if self.iy < self.dis_threshold / 3 and self.move_dis < (-self.dis_threshold) / 4:#ori:2 and 4
             # *self.dis_threshold:
             print(self._tclass, "sub one")
             self.context.redis_connection_result_queue.set(int(time.time() * 100000), json.dumps(

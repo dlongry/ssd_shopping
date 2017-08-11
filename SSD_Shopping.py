@@ -9,7 +9,7 @@ def main():
         t = time.time()
         _main_obj.execute_and_update_state()
         # _main_obj.render()
-        print('fps=%f' % (1/(time.time()-t)))
+        #print('fps=%f' % (1/(time.time()-t)))
     pass
 
 

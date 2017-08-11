@@ -5,6 +5,8 @@ import redis
 import numpy as np
 from BehaviourDetection import BehaviourDetection
 from DoubleCheck import DoubleCheck
+from DecLeaveThread import DecLeaveThread
+
 import cv2
 
 
@@ -16,19 +18,30 @@ class Main:
         self.doublecheck =None
         self.redis_connection_img_queue = redis.StrictRedis(host='localhost', port=6379, db=0)
         self.redis_connection_result_queue = redis.StrictRedis(host='localhost', port=6379, db=1)
-        self.redis_connection_intermediate_queue = redis.StrictRedis(host='localhost', port=6379, db=2)
+        self.redis_connection_checkout_detect = redis.StrictRedis(host='localhost',port=6379,db=3)
+        self.redis_connection_webCamMapping = redis.StrictRedis(host='localhost',port=6379,db=4)
         self.queue_checker = None
         self.canvas = np.zeros((512, 512, 3), dtype=np.uint8)
+        self.thread_dec_leave = None
+
+    def __del__(self):
+        if self.thread_dec_leave is not None:
+            self.thread_dec_leave.mark_close()
 
     def execute_and_update_state(self):
-        print(self.current_state)
+        #print(self.current_state)
         if self.current_state == State.WaitForQueue:
             self.queue_checker = QueueChecker(self)
             self.current_state = State.Start
+
         if self.current_state == State.Start:
             if self.queue_checker.is_go():
                 self.edge_detector = EdgeDetection(self)
                 self.current_state = State.EdgeDetection
+                # #add init DecLeaveThread
+                if self.thread_dec_leave is None:
+                    self.thread_dec_leave = DecLeaveThread.get_new_detect_thread(self)
+
         elif self.current_state == State.EdgeDetection:
             # TODO: how to detect edge
             # if False:

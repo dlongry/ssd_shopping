@@ -100,3 +100,19 @@ def hist_verify(ori_patch, now_patch, threshhold):
     else:
         return False
 
+def plt_tracker(img, classes, bboxes, linewidth=3):
+    """Visualize bounding boxes. Largely inspired by SSD-MXNET!
+    """
+    height = img.shape[0]
+    width = img.shape[1]
+    cls_id = int(classes)
+    color = (random.random(), random.random(), random.random())
+
+    ymin = int(bboxes[1])
+    xmin = int(bboxes[0])
+    h = int(bboxes[3])
+    w = int(bboxes[2])
+
+    cv2.rectangle(img, (xmin, ymin), (xmin + w, ymin + h), color, linewidth)
+    cv2.imshow('Object tracker...', img)
+    cv2.waitKey(1)
