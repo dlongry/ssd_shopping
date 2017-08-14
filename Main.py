@@ -20,6 +20,7 @@ class Main:
         self.redis_connection_result_queue = redis.StrictRedis(host='localhost', port=6379, db=1)
         self.redis_connection_checkout_detect = redis.StrictRedis(host='localhost',port=6379,db=3)
         self.redis_connection_webCamMapping = redis.StrictRedis(host='localhost',port=6379,db=4)
+        self.redis_connection_reset = redis.StrictRedis(host='localhost',port=6379,db=5)
         self.queue_checker = None
         self.canvas = np.zeros((512, 512, 3), dtype=np.uint8)
         self.thread_dec_leave = None
@@ -38,7 +39,7 @@ class Main:
             if self.queue_checker.is_go():
                 self.edge_detector = EdgeDetection(self)
                 self.current_state = State.EdgeDetection
-                # #add init DecLeaveThread
+                #: add init DecLeaveThread
                 if self.thread_dec_leave is None:
                     self.thread_dec_leave = DecLeaveThread.get_new_detect_thread(self)
 

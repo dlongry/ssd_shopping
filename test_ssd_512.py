@@ -52,7 +52,7 @@ with slim.arg_scope(ssd_net.arg_scope(data_format=data_format)):
 
 # Restore SSD model.
 # ckpt_filename = '../checkpoints/ssd_300_vgg.ckpt'
-ckpt_filename = './SSD-Tensorflow-512/checkpoints/VGG_PASCAL-mydata_SSD_512x512_iter_56000.ckpt'
+ckpt_filename = './SSD-Tensorflow-512/checkpoints/shopping_5_SSD_512x512_iter_39021.ckpt'
 isess.run(tf.global_variables_initializer())
 saver = tf.train.Saver()
 saver.restore(isess, ckpt_filename)
@@ -72,7 +72,7 @@ ssd_anchors = ssd_net.anchors(net_shape)
 
 
 # Main image processing routine.
-def detect_img(img, select_threshold=0.9, nms_threshold=.05, net_shape=(512, 512)):
+def detect_img(img, select_threshold=0.88, nms_threshold=.05, net_shape=(512, 512)):
     # Run SSD network.
     rimg, rpredictions, rlocalisations, rbbox_img = isess.run([image_4d, predictions, localisations, bbox_img],
                                                               feed_dict={img_input: img})
