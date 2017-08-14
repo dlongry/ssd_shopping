@@ -72,7 +72,7 @@ ssd_anchors = ssd_net.anchors(net_shape)
 
 
 # Main image processing routine.
-def detect_img(img, select_threshold=0.88, nms_threshold=.05, net_shape=(512, 512)):
+def detect_img(img, select_threshold=0.5, nms_threshold=.05, net_shape=(512, 512)):
     # Run SSD network.
     rimg, rpredictions, rlocalisations, rbbox_img = isess.run([image_4d, predictions, localisations, bbox_img],
                                                               feed_dict={img_input: img})
